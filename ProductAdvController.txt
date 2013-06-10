@@ -1,0 +1,22 @@
+public class ProductAdvController{
+
+    public ProductAdvController(ApexPages.StandardController controller) {GetProduct();}
+    public MyProducts__c ProductRec{get; set;}
+ 	public String prodImageURL{get;set;} 
+    public String prodID{get;set;}
+    public date dte{get;set;}
+    
+    public string GetProduct() {
+        List<ProductAdvHistory__c> prodadvhistory=[select PR_ID__c from ProductAdvHistory__c order by Name DESC Limit 1];
+        
+        string prdhid=prodadvhistory[0].PR_ID__c;
+        List<MyProducts__c> img=[select PR_ID__c, Document_ID__c, Description__c from MyProducts__c where PR_ID__c = :prdhid];
+        if(img[0].Document_ID__c != NULL) {
+        	prodImageURL='http://ressch-developer-edition.na15.force.com/AofD/servlet/servlet.FileDownload?file='+img[0].Document_ID__c+'&oid=00Di0000000HZpQ';
+        }else{
+            prodImageURL=img[0].Description__c;           
+        }
+        prodID=img[0].PR_ID__c;
+        return(prodID);
+    }
+}

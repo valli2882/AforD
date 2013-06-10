@@ -1,0 +1,4 @@
+trigger ProductAdvTrigger on ProductAdv__c (before insert, before update) {
+   List<ProductAdv__c> newrec=Trigger.new;
+   id cronid=ProductAdvSch.scheduleIt(newrec[0].AdvFrequency__c);   
+}

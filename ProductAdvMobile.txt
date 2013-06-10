@@ -1,0 +1,35 @@
+<apex:page standardController="MyProducts__c" extensions="ProductAdvController" showHeader="false" standardStylesheets="false">
+   <head>
+     <title>Product of the Day !!</title>       
+   </head>
+   <p></p>
+   
+   <script type="text/javascript">
+            function winclose(){        
+              window.close();              
+            }
+   </script>
+    
+   <h2>Today's Choice</h2>
+   <apex:form id="myform">  
+        <apex:pageBlock mode="detail" id="mainblock">
+             <apex:pageMessages id="msgPanel"/>
+                <apex:pageBlockButtons location="bottom">
+                <apex:outputPanel >
+                    <p></p>
+                         <apex:commandButton style="text-align:center" value="Close" onclick="javascript:return winclose()"/>
+                </apex:outputPanel>
+            </apex:pageBlockButtons>   
+            
+            <apex:pageBlockSection columns="1"> 
+                 <apex:pageBlockSectionItem >
+                    <apex:outputPanel id="panel">
+                       <apex:image url="{!prodImageURL}" style="text-align:center"/><br/> 
+                       <!-- <apex:outputText value="{!prodImageURL}"/><br/> -->
+                    </apex:outputPanel>
+                 </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>         
+            
+        </apex:pageBlock>
+    </apex:form> 
+</apex:page>

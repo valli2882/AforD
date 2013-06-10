@@ -1,0 +1,79 @@
+global class ProductAdvSch implements Schedulable{
+    public static String CRON_EXP;
+    
+    global static String scheduleIt(String Freq) {
+		ProductAdvSch ps = new ProductAdvSch();
+        if(Freq=='Daily') {
+            CRON_EXP='0 0 0 * * ?';
+        }else if(Freq=='Hour') {
+            CRON_EXP='0 1 * * * ?';
+        }else if(Freq=='DayBreak') {
+            CRON_EXP='0 0 6,12,18 * * ?';
+        }else if(Freq=='Weekly') {
+            CRON_EXP='0 0 1 ? * *';
+        }else if(Freq=='Monthly') {
+            CRON_EXP='0 0 0 1 * ? * ';
+        }else {
+            //Used for testing
+            CRON_EXP='1 50 23 * * ?';
+        }
+		return System.schedule('Product Adv Scheduler', CRON_EXP, ps);
+	}
+
+    global void execute(SchedulableContext sc) {
+        date dte=System.today();
+        
+        List<ProductAdvHistory__c> ProductAdvHistory = [select PR_ID__c, AdvTime__c from ProductAdvHistory__c where AdvTime__c >= :dte];		 
+        string ProdID;
+	 	
+		List<ProductAdv__c> ProductAdv = [Select Selectioncriteria__c from ProductAdv__c];
+        List<MyProducts__c> myProduct;
+        if(ProductAdv[0].SelectionCriteria__c == 'Random'){
+            myProduct=[Select PR_ID__c, Document_ID__c from myProducts__c];
+        }else { 
+            AggregateResult[] Criteria;
+            if(ProductAdv[0].SelectionCriteria__c=='Least in Stock'){
+            	Criteria = [Select MIN(quantity__c) from MyStock__c];            
+            } else {
+                Criteria = [Select MAX(quantity__c) from MyStock__c];
+            }
+            
+            MyStock__c myStk=new MyStock__c();
+            for (AggregateResult ar : Criteria)  { 				
+                myStk.quantity__c=(Decimal)ar.get('expr0');
+			}
+            integer maxqnty=(integer)myStk.quantity__c;
+            //System.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Max quantity : '+maxqnty);
+            List<MyStock__c> myStock= [Select PR_ID__c from MyStock__c where quantity__c = :maxqnty];            
+            //System.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>PRODUCT ID :'+myStock[0].PR_ID__c);
+            myProduct=[Select PR_ID__c, Document_ID__c from myProducts__c where PR_ID__c = :myStock[0].PR_ID__c];
+        }
+        //System.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>MyProduct size :'+myProduct.size());
+		
+        for(integer j=0; j<myProduct.size();j++) {
+            //System.debug('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Insite FOR LOOP');
+            ProdID=myProduct[j].PR_ID__c;
+            integer found=0;
+            //sYSTEM.DEBUG('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Size :'+ProductAdvHistory.size());
+            for(integer i=0; i<ProductAdvHistory.size(); i++){
+                String ProdHID=String.valueOf(ProductAdvHistory[i].PR_ID__c);
+              
+                if(ProdID==ProdHID) {
+                    found=1;
+                    break;
+                }else{
+                    continue;
+                }
+            }
+            
+            if(found==0) {                
+                 ProductAdvHistory__c newprodhist = new ProductAdvHistory__c(
+                     PR_ID__c = ProdID, 
+                     AdvTime__c=System.now()
+                 );                
+                insert newprodhist;                 
+                break;
+            }			
+		}
+	}
+}
